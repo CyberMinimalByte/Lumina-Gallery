@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Технические шоколадки 🍫🔧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1f2a 100%);
+            color: #f0f3f8;
+            font-family: 'Inter', system-ui, -apple-system, 'Comic Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: default;
+        }
+        .container {
+            max-width: 600px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background: rgba(17, 22, 29, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            border: 1px solid rgba(42, 47, 58, 0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: fadeIn 0.5s ease;
+        }
+        .emoji {
+            font-size: 6rem;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 1rem 0;
+            background: linear-gradient(135deg, #a78bfa, #e74c3c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+            color: #9aa4bf;
+        }
+        .fun-fact {
+            background: rgba(108, 92, 231, 0.2);
+            border-radius: 2rem;
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            border-left: 3px solid #6c5ce7;
+        }
+        .counter {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.7rem;
+            color: #2a2f3a;
+            cursor: default;
+            user-select: none;
+        }
+        .secret-zone {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            opacity: 0;
+            cursor: default;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #6c5ce7;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            z-index: 1000;
+            animation: fadeOut 2s forwards;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="emoji" id="mainEmoji">🍫🔧</div>
+        <h1 id="mainTitle">Технические шоколадки</h1>
+        <div class="message" id="mainMessage">
+            Сайт временно недоступен.<br>
+            Ведутся профилактические работы.<br>
+            Приносим извинения за неудобства.
+        </div>
+        <div class="fun-fact" id="funFact">
+            💡 Знаете ли вы? Ping не является методом DDoS-атаки с 1998 года.
+        </div>
+    </div>
+    <div class="counter" id="clickCounter">🍫</div>
+    <div class="secret-zone" id="secretZone"></div>
+
+    <script>
+        let clickCount = 0;
+        let lastClickTime = 0;
+        let adminMode = false;
+        
+        // Забавные сообщения для прикола
+        const funFacts = [
+            "💡 Знаете ли вы? Ping не является методом DDoS-атаки с 1998 года.",
+            "🔧 Дилдоинукс — это не настоящий дистрибутив. Надеюсь, вы поняли это до установки.",
+            "🍫 Cloudflare защищает 20% всех сайтов в мире. Ваш ping против них — как муха против слона.",
+            "🤖 Нейронка сказала, что DDoS — это плохо. Слушайтесь нейронку.",
+            "🎮 Друг пытался DDoS через ping. Это было очень мило.",
+            "⚡ Настоящие хакеры не спрашивают нейронки, как DDoS-ить. Они читают мануалы.",
+            "🍫🔧 Технические шоколадки — это не баг, это фича.",
+            "💀 Ваш 'DDoS' был зафиксирован. В журнале ошибок: 'получен ping, ответ отправлен'.",
+            "🛡️ Cloudflare даже не заметил вашу атаку. Он спал.",
+            "🎭 Не пытайтесь DDoS-ить друзей. Лучше попросите у них пароль от админки."
+        ];
+        
+        // Секретные режимы (меняются по клику)
+        const secretTitles = [
+            "🍫 Режим прикола активирован",
+            "🤡 Атака отражена",
+            "🛡️ Cloudflare ржёт с тебя",
+            "💀 Твой DDoS — это ping",
+            "🔧 Диагностика: пользователь — лох",
+            "🎮 Друг пытался, но нет",
+            "⚡ Успел? Не успел.",
+            "🍫🔧 Технические шоколадки для особых клиентов",
+            "🐧 Дилдоинукс не помог",
+            "🤖 Нейронка тебя наебала"
+        ];
+        
+        const secretMessages = [
+            "Сайт работает, просто тебя сюда не пускают. Попробуй ещё раз, может, повезёт.",
+            "Твоя атака была зафиксирована. В ответ: 'pong'.",
+            "Cloudflare даже не чихнул. Попробуй что-нибудь посложнее ping.",
+            "Ping of death умер в 90-х. Пора обновить знания.",
+            "Сайт на техническом обслуживании. А ещё твой друг знает, что ты пытаешься его DDoS-ить.",
+            "Технические шоколадки вкусные, правда?",
+            "Настоящий DDoS требует настоящих знаний. Учи матчасть.",
+            "Это не баг, это защита от мамкиных хакеров.",
+            "Пока ты пингуешь, сайт уже работает. Но не для тебя.",
+            "Спроси у нейронки, как правильно. О, она сказала, что нельзя. Понял?"
+        ];
+        
+        // Случайный факт при загрузке
+        const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
+        document.getElementById('funFact').innerHTML = randomFact;
+        
+        // Секретная зона внизу (3 клика для активации)
+        const secretZone = document.getElementById('secretZone');
+        const container = document.getElementById('mainContainer');
+        const mainEmoji = document.getElementById('mainEmoji');
+        const mainTitle = document.getElementById('mainTitle');
+        const mainMessage = document.getElementById('mainMessage');
+        const counterSpan = document.getElementById('clickCounter');
+        
+        let secretIndex = 0;
+        
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.background = isError ? '#e74c3c' : '#6c5ce7';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+        
+        secretZone.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const now = Date.now();
+            if (now - lastClickTime > 2000) {
+                clickCount = 0;
+            }
+            clickCount++;
+            lastClickTime = now;
+            
+            if (clickCount === 1) {
+                showToast("🍫 Ты нашёл секретную зону... ещё 2 клика");
+                counterSpan.innerHTML = "🍫 1/3";
+            } else if (clickCount === 2) {
+                showToast("🔧 Ещё один клик и откроются секреты");
+                counterSpan.innerHTML = "🍫🔧 2/3";
+            } else if (clickCount >= 3) {
+                // Активация секретного режима
+                adminMode = !adminMode;
+                if (adminMode) {
+                    secretIndex = (secretIndex + 1) % secretTitles.length;
+                    mainTitle.innerHTML = secretTitles[secretIndex];
+                    mainMessage.innerHTML = secretMessages[secretIndex];
+                    mainEmoji.innerHTML = "🤡🔥";
+                    showToast("🔓 Секретный режим активирован! Теперь ты можешь менять текст каждые 3 клика");
+                    counterSpan.innerHTML = "🔓 РЕЖИМ БОГА";
+                    
+                    // Меняем фон
+                    document.body.style.background = "linear-gradient(135deg, #1a1f2a 0%, #2a2f3a 100%)";
+                } else {
+                    // Возврат к обычному режиму
+                    mainTitle.innerHTML = "Технические шоколадки";
+                    mainMessage.innerHTML = "Сайт временно недоступен.<br>Ведутся профилактические работы.<br>Приносим извинения за неудобства.";
+                    mainEmoji.innerHTML = "🍫🔧";
+                    showToast("🔒 Вернулись к обычным шоколадкам");
+                    counterSpan.innerHTML = "🍫";
+                    document.body.style.background = "";
+                }
+                clickCount = 0;
+            }
+            
+            // Если в режиме админа, каждый клик меняет текст
+            if (adminMode && clickCount === 0) {
+                secretIndex = (secretIndex + 1) % secretTitles.length;
+                mainTitle.innerHTML = secretTitles[secretIndex];
+                mainMessage.innerHTML = secretMessages[secretIndex];
+                const emojis = ["🤡", "🔥", "💀", "🛡️", "🎮", "🐧", "🤖", "🍫", "🔧", "⚡"];
+                mainEmoji.innerHTML = emojis[secretIndex % emojis.length];
+                showToast("🎭 Смена режима: " + secretTitles[secretIndex]);
+                counterSpan.innerHTML = "🎭 " + (secretIndex + 1) + "/" + secretTitles.length;
+            }
+            
+            setTimeout(() => {
+                if (clickCount === 0 && !adminMode) {
+                    counterSpan.innerHTML = "🍫";
+                }
+            }, 1500);
+        });
+        
+        // Дополнительная приколюха: если нажать на контейнер 5 раз быстро
+        let easterEggCount = 0;
+        let easterEggTimer = null;
+        
+        container.addEventListener('click', () => {
+            if (adminMode) return;
+            easterEggCount++;
+            if (easterEggTimer) clearTimeout(easterEggTimer);
+            easterEggTimer = setTimeout(() => { easterEggCount = 0; }, 1000);
+            
+            if (easterEggCount === 5) {
+                showToast("🍫🔧 Псс... кликни внизу страницы 3 раза для секретов", false);
+                easterEggCount = 0;
+            }
+        });
+        
+        // Анимация для прикола
+        setInterval(() => {
+            if (!adminMode) {
+                const randomEmoji = ["🍫", "🔧", "🍫🔧", "🛡️", "🤡"][Math.floor(Math.random() * 5)];
+                counterSpan.innerHTML = randomEmoji;
+                setTimeout(() => {
+                    if (!adminMode) counterSpan.innerHTML = "🍫";
+                }, 1000);
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
